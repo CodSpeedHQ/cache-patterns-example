@@ -1,0 +1,13 @@
+[package]
+name = "cache-patterns"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+
+[dev-dependencies]
+divan = "0.1"
+
+[[bench]]
+name = "particle_simulation"
+harness = false
