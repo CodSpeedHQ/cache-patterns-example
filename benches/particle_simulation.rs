@@ -4,11 +4,15 @@ fn main() {
     divan::main();
 }
 
+const SMALL: usize = 100_000;
+const MEDIUM: usize = 1_000_000;
+const LARGE: usize = 10_000_000;
+
 // ============================================================================
 // Array of Structures (AoS) - Cache Unfriendly
 // ============================================================================
 
-#[divan::bench(args = [1_000, 10_000, 100_000])]
+#[divan::bench(args = [SMALL, MEDIUM, LARGE])]
 fn aos_update_positions(bencher: divan::Bencher, count: usize) {
     bencher
         .with_inputs(|| aos::ParticleSystem::new(count))
@@ -17,7 +21,7 @@ fn aos_update_positions(bencher: divan::Bencher, count: usize) {
         });
 }
 
-#[divan::bench(args = [1_000, 10_000, 100_000])]
+#[divan::bench(args = [SMALL, MEDIUM, LARGE])]
 fn aos_kinetic_energy(bencher: divan::Bencher, count: usize) {
     bencher
         .with_inputs(|| aos::ParticleSystem::new(count))
@@ -26,7 +30,7 @@ fn aos_kinetic_energy(bencher: divan::Bencher, count: usize) {
         });
 }
 
-#[divan::bench(args = [1_000, 10_000, 100_000])]
+#[divan::bench(args = [SMALL, MEDIUM, LARGE])]
 fn aos_apply_gravity(bencher: divan::Bencher, count: usize) {
     bencher
         .with_inputs(|| aos::ParticleSystem::new(count))
@@ -39,7 +43,7 @@ fn aos_apply_gravity(bencher: divan::Bencher, count: usize) {
 // Structure of Arrays - Cache Friendly
 // ============================================================================
 
-#[divan::bench(args = [1_000, 10_000, 100_000])]
+#[divan::bench(args = [SMALL, MEDIUM, LARGE])]
 fn soa_update_positions(bencher: divan::Bencher, count: usize) {
     bencher
         .with_inputs(|| soa::ParticleSystem::new(count))
@@ -48,7 +52,7 @@ fn soa_update_positions(bencher: divan::Bencher, count: usize) {
         });
 }
 
-#[divan::bench(args = [1_000, 10_000, 100_000])]
+#[divan::bench(args = [SMALL, MEDIUM, LARGE])]
 fn soa_kinetic_energy(bencher: divan::Bencher, count: usize) {
     bencher
         .with_inputs(|| soa::ParticleSystem::new(count))
@@ -57,7 +61,7 @@ fn soa_kinetic_energy(bencher: divan::Bencher, count: usize) {
         });
 }
 
-#[divan::bench(args = [1_000, 10_000, 100_000])]
+#[divan::bench(args = [SMALL, MEDIUM, LARGE])]
 fn soa_apply_gravity(bencher: divan::Bencher, count: usize) {
     bencher
         .with_inputs(|| soa::ParticleSystem::new(count))
