@@ -33,6 +33,7 @@ impl ParticleSystem {
     /// Update particle positions based on velocity
     /// Excellent cache behavior: positions and velocities are contiguous,
     /// all data in cache lines is useful
+    #[inline(never)]
     pub fn update_positions(&mut self, dt: f32) {
         for i in 0..self.positions.len() {
             self.positions[i] = self.positions[i].add(&self.velocities[i].scale(dt));
@@ -41,6 +42,7 @@ impl ParticleSystem {
 
     /// Compute total kinetic energy
     /// Good cache behavior: sequential access to velocities and masses
+    #[inline(never)]
     pub fn compute_kinetic_energy(&self) -> f32 {
         let mut total = 0.0;
         for i in 0..self.velocities.len() {
@@ -53,6 +55,7 @@ impl ParticleSystem {
 
     /// Apply gravity to all particles
     /// Excellent cache behavior: only touching velocity array
+    #[inline(never)]
     pub fn apply_gravity(&mut self, gravity: Vec3, dt: f32) {
         for velocity in &mut self.velocities {
             *velocity = velocity.add(&gravity.scale(dt));

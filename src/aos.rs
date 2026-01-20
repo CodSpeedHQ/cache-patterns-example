@@ -42,6 +42,7 @@ impl ParticleSystem {
     /// Update particle positions based on velocity
     /// Poor cache behavior: we load entire Particle struct (40 bytes) but only need
     /// position (12 bytes) and velocity (12 bytes)
+    #[inline(never)]
     pub fn update_positions(&mut self, dt: f32) {
         for particle in &mut self.particles {
             particle.position = particle.position.add(&particle.velocity.scale(dt));
@@ -50,6 +51,7 @@ impl ParticleSystem {
 
     /// Compute total kinetic energy
     /// Poor cache behavior: we access velocity and mass, skipping position data
+    #[inline(never)]
     pub fn compute_kinetic_energy(&self) -> f32 {
         let mut total = 0.0;
         for particle in &self.particles {
@@ -63,6 +65,7 @@ impl ParticleSystem {
 
     /// Apply gravity to all particles
     /// Poor cache behavior: we only need to modify velocity, but load entire struct
+    #[inline(never)]
     pub fn apply_gravity(&mut self, gravity: Vec3, dt: f32) {
         for particle in &mut self.particles {
             particle.velocity = particle.velocity.add(&gravity.scale(dt));

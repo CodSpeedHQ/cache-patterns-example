@@ -1,71 +1,79 @@
 use cache_patterns::{aos, soa, Vec3};
+use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
-fn main() {
-    divan::main();
-}
-
-const SMALL: usize = 100_000;
 const MEDIUM: usize = 1_000_000;
-const LARGE: usize = 10_000_000;
 
 // ============================================================================
 // Array of Structures (AoS) - Cache Unfriendly
 // ============================================================================
 
-#[divan::bench(args = [SMALL, MEDIUM, LARGE])]
-fn aos_update_positions(bencher: divan::Bencher, count: usize) {
-    bencher
-        .with_inputs(|| aos::ParticleSystem::new(count))
-        .bench_values(|mut system| {
-            system.update_positions(0.016);
+fn aos_update_positions(c: &mut Criterion) {
+    c.bench_function("aos_update_positions", |b| {
+        let mut system = aos::ParticleSystem::new(MEDIUM);
+        b.iter(|| {
+            system.update_positions(black_box(0.016));
         });
+    });
 }
 
-#[divan::bench(args = [SMALL, MEDIUM, LARGE])]
-fn aos_kinetic_energy(bencher: divan::Bencher, count: usize) {
-    bencher
-        .with_inputs(|| aos::ParticleSystem::new(count))
-        .bench_values(|system| {
-            divan::black_box(system.compute_kinetic_energy());
+fn aos_kinetic_energy(c: &mut Criterion) {
+    c.bench_function("aos_kinetic_energy", |b| {
+        let system = aos::ParticleSystem::new(MEDIUM);
+        b.iter(|| {
+            black_box(system.compute_kinetic_energy());
         });
+    });
 }
 
-#[divan::bench(args = [SMALL, MEDIUM, LARGE])]
-fn aos_apply_gravity(bencher: divan::Bencher, count: usize) {
-    bencher
-        .with_inputs(|| aos::ParticleSystem::new(count))
-        .bench_values(|mut system| {
-            system.apply_gravity(Vec3::new(0.0, -9.81, 0.0), 0.016);
+fn aos_apply_gravity(c: &mut Criterion) {
+    c.bench_function("aos_apply_gravity", |b| {
+        let mut system = aos::ParticleSystem::new(MEDIUM);
+        let gravity = Vec3::new(0.0, -9.81, 0.0);
+        b.iter(|| {
+            system.apply_gravity(black_box(gravity), black_box(0.016));
         });
+    });
 }
 
 // ============================================================================
 // Structure of Arrays - Cache Friendly
 // ============================================================================
 
-#[divan::bench(args = [SMALL, MEDIUM, LARGE])]
-fn soa_update_positions(bencher: divan::Bencher, count: usize) {
-    bencher
-        .with_inputs(|| soa::ParticleSystem::new(count))
-        .bench_values(|mut system| {
-            system.update_positions(0.016);
+fn soa_update_positions(c: &mut Criterion) {
+    c.bench_function("soa_update_positions", |b| {
+        let mut system = soa::ParticleSystem::new(MEDIUM);
+        b.iter(|| {
+            system.update_positions(black_box(0.016));
         });
+    });
 }
 
-#[divan::bench(args = [SMALL, MEDIUM, LARGE])]
-fn soa_kinetic_energy(bencher: divan::Bencher, count: usize) {
-    bencher
-        .with_inputs(|| soa::ParticleSystem::new(count))
-        .bench_values(|system| {
-            divan::black_box(system.compute_kinetic_energy());
+fn soa_kinetic_energy(c: &mut Criterion) {
+    c.bench_function("soa_kinetic_energy", |b| {
+        let system = soa::ParticleSystem::new(MEDIUM);
+        b.iter(|| {
+            black_box(system.compute_kinetic_energy());
         });
+    });
 }
 
-#[divan::bench(args = [SMALL, MEDIUM, LARGE])]
-fn soa_apply_gravity(bencher: divan::Bencher, count: usize) {
-    bencher
-        .with_inputs(|| soa::ParticleSystem::new(count))
-        .bench_values(|mut system| {
-            system.apply_gravity(Vec3::new(0.0, -9.81, 0.0), 0.016);
+fn soa_apply_gravity(c: &mut Criterion) {
+    c.bench_function("soa_apply_gravity", |b| {
+        let mut system = soa::ParticleSystem::new(MEDIUM);
+        let gravity = Vec3::new(0.0, -9.81, 0.0);
+        b.iter(|| {
+            system.apply_gravity(black_box(gravity), black_box(0.016));
         });
+    });
 }
+
+criterion_group!(
+    benches,
+    aos_update_positions,
+    aos_kinetic_energy,
+    aos_apply_gravity,
+    soa_update_positions,
+    soa_kinetic_energy,
+    soa_apply_gravity
+);
+criterion_main!(benches);
