@@ -35,6 +35,17 @@ fn aos_apply_gravity(c: &mut Criterion) {
     });
 }
 
+fn aos_full_update(c: &mut Criterion) {
+    c.bench_function("aos_full_update", |b| {
+        let mut system = aos::ParticleSystem::new(MEDIUM);
+        let gravity = Vec3::new(0.0, -9.81, 0.0);
+        let dt = 0.016;
+        b.iter(|| {
+            black_box(system.update(black_box(gravity), black_box(dt)));
+        });
+    });
+}
+
 // ============================================================================
 // Structure of Arrays - Cache Friendly
 // ============================================================================
@@ -67,13 +78,26 @@ fn soa_apply_gravity(c: &mut Criterion) {
     });
 }
 
+fn soa_full_update(c: &mut Criterion) {
+    c.bench_function("soa_full_update", |b| {
+        let mut system = soa::ParticleSystem::new(MEDIUM);
+        let gravity = Vec3::new(0.0, -9.81, 0.0);
+        let dt = 0.016;
+        b.iter(|| {
+            black_box(system.update(black_box(gravity), black_box(dt)));
+        });
+    });
+}
+
 criterion_group!(
     benches,
     aos_update_positions,
     aos_kinetic_energy,
     aos_apply_gravity,
+    aos_full_update,
     soa_update_positions,
     soa_kinetic_energy,
-    soa_apply_gravity
+    soa_apply_gravity,
+    soa_full_update
 );
 criterion_main!(benches);

@@ -71,4 +71,13 @@ impl ParticleSystem {
             particle.velocity = particle.velocity.add(&gravity.scale(dt));
         }
     }
+
+    /// Full simulation update: apply forces, update positions, and compute energy
+    /// This simulates a typical physics frame with multiple passes over the data
+    #[inline(never)]
+    pub fn update(&mut self, gravity: Vec3, dt: f32) -> f32 {
+        self.apply_gravity(gravity, dt);
+        self.update_positions(dt);
+        self.compute_kinetic_energy()
+    }
 }
