@@ -16,37 +16,26 @@ jobs:
     name: Run benchmarks
     runs-on: codspeed-macro
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          toolchain: stable
+      - name: Install CMake and build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake build-essential
 
-      - name: Cache cargo registry
-        uses: actions/cache@v4
-        with:
-          path: ~/.cargo/registry
-          key: cargo-registry-${{ runner.arch }}-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            cargo-registry-${{ runner.arch }}-
-
-      - name: Cache target directory
-        uses: actions/cache@v4
-        with:
-          path: target
-          key: cargo-target-${{ runner.arch }}-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            cargo-target-${{ runner.arch }}-
-
-      - name: Install cargo-codspeed
-        run: cargo install cargo-codspeed --locked
+      - name: Configure CMake
+        run: |
+          mkdir -p build
+          cd build
+          cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCODSPEED_MODE=walltime ..
 
       - name: Build benchmarks
-        run: cargo codspeed build
+        run: |
+          cd build
+          make -j$(nproc)
 
       - name: Run benchmarks
         uses: CodSpeedHQ/action@v4
         with:
           mode: walltime
-          run: cargo codspeed run
+          run: ./build/particle_simulation_bench

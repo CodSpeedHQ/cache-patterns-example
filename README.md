@@ -1,6 +1,6 @@
 # Cache Patterns Benchmark
 
-This crate demonstrates the performance impact of different data layouts on CPU cache utilization through a particle physics simulation.
+This project demonstrates the performance impact of different data layouts on CPU cache utilization through a particle physics simulation implemented in C++.
 
 ## Initial Assumption
 
@@ -11,14 +11,14 @@ This benchmark is designed to validate this hypothesis using CodSpeed's walltime
 ## The Problem: Array of Structures (AoS) vs Structure of Arrays (SoA)
 
 ### Array of Structures (AoS) - Cache Unfriendly
-```rust
+```cpp
 struct Particle {
-    position: Vec3,  // 12 bytes
-    velocity: Vec3,  // 12 bytes
-    mass: f32,       // 4 bytes
-}                    // = 28 bytes per particle (40 with padding)
+    Vec3 position;  // 12 bytes
+    Vec3 velocity;  // 12 bytes
+    float mass;     // 4 bytes
+};                  // = 28 bytes per particle (40 with padding)
 
-particles: Vec<Particle>
+std::vector<Particle> particles;
 ```
 
 **Memory layout**: `[pos0, vel0, mass0, pos1, vel1, mass1, pos2, vel2, mass2, ...]`
@@ -26,12 +26,13 @@ particles: Vec<Particle>
 When we only need to update positions, we load entire cache lines containing velocity and mass data that we don't use, wasting bandwidth and cache space.
 
 ### Structure of Arrays (SoA) - Cache Friendly
-```rust
-struct ParticleSystem {
-    positions: Vec<Vec3>,
-    velocities: Vec<Vec3>,
-    masses: Vec<f32>,
-}
+```cpp
+class ParticleSystem {
+public:
+    std::vector<Vec3> positions;
+    std::vector<Vec3> velocities;
+    std::vector<float> masses;
+};
 ```
 
 **Memory layout**:
@@ -53,15 +54,43 @@ When we update positions, every byte in the cache line is useful data, maximizin
 - Higher effective memory bandwidth
 - Better prefetcher efficiency
 
-## Running the Benchmarks
+## Building and Running the Benchmarks
+
+### Prerequisites
+
+- CMake 3.12 or higher
+- C++17 compatible compiler
+- Build tools (make, gcc/clang)
+
+### Build Instructions
 
 ```bash
-# Run with standard benchmarking
-cargo bench
+# Create build directory
+mkdir build && cd build
 
-# Run with CodSpeed profiling to see cache counters
-# (requires CodSpeed setup with walltime instrument)
-codspeed run cargo bench
+# Configure with CodSpeed simulation mode for profiling
+cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCODSPEED_MODE=simulation ..
+
+# Build
+make -j$(nproc)
+
+# Run benchmarks
+./particle_simulation_bench
+```
+
+### Build Modes
+
+CodSpeed supports different modes via the `CODSPEED_MODE` CMake option:
+
+- `off` (default): Disables CodSpeed instrumentation
+- `simulation`: Runs benchmarks on simulated CPU with hardware counters
+- `walltime`: For walltime reports
+
+Example:
+```bash
+# Build for walltime profiling
+cmake -DCODSPEED_MODE=walltime ..
+make
 ```
 
 ## What to Look For in CodSpeed Profiling
@@ -86,10 +115,39 @@ Each version implements three operations:
 3. **apply_gravity**: `velocity = velocity + gravity * dt`
    - Tests cache behavior when accessing only one field
 
-## Dataset Sizes
+## Dataset Size
 
-- **Small**: 1,000 particles (~40 KB for AoS, ~32 KB for SoA)
-- **Medium**: 10,000 particles (~400 KB for AoS, ~320 KB for SoA)
-- **Large**: 100,000 particles (~4 MB for AoS, ~3.2 MB for SoA)
+The benchmarks use **1,000,000 particles**:
+- **AoS**: ~40 MB (28 bytes per particle + padding)
+- **SoA**: ~32 MB (separate arrays for positions, velocities, masses)
 
-Different sizes stress different cache levels (L1/L2/L3).
+This size is large enough to exceed L3 cache on most systems, making cache efficiency differences clearly visible.
+
+## Project Structure
+
+```
+cache-patterns-example/
+├── include/
+│   ├── vec3.h          # 3D vector utility
+│   ├── aos.h           # Array of Structures header
+│   └── soa.h           # Structure of Arrays header
+├── src/
+│   ├── aos.cpp         # AoS implementation
+│   └── soa.cpp         # SoA implementation
+├── benchmarks/
+│   └── particle_simulation.cpp  # Google Benchmark benchmarks
+├── CMakeLists.txt      # CMake build configuration
+└── .github/workflows/
+    └── codspeed.yml    # CI workflow for CodSpeed
+```
+
+## Continuous Integration
+
+The project includes a GitHub Actions workflow that automatically runs benchmarks on every push and pull request using CodSpeed. The workflow:
+
+1. Builds the project with CMake in RelWithDebInfo mode
+2. Compiles with CODSPEED_MODE=simulation for hardware counter profiling
+3. Runs benchmarks and reports performance metrics
+4. Detects performance regressions automatically
+
+View the workflow configuration in `.github/workflows/codspeed.yml`.

@@ -1,5 +1,11 @@
-# Rust build artifacts
-/target/
+# C++ build artifacts
+/build/
+/cmake-build-*/
+*.o
+*.a
+*.so
+*.dylib
+*.exe
 
 # IDE files
 .vscode/
@@ -11,4 +17,10 @@
 # OS files
 .DS_Store
 Thumbs.db
-target
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+build/
